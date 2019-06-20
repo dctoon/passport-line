@@ -5,7 +5,7 @@ var LineStrategy = require('../lib/strategy');
 
 
 vows.describe('LineStrategy').addBatch({
-  
+
   'strategy': {
     topic: function() {
       return new LineStrategy({
@@ -14,22 +14,12 @@ vows.describe('LineStrategy').addBatch({
       },
       function() {});
     },
-    
+
     'should be named line': function (strategy) {
       assert.equal(strategy.name, 'line');
-    },
-    'should rejected options.state === false': function() {
-      assert.throws(function () {
-        new LineStrategy({
-          channelID: 'ABC123',
-          channelSecret: 'secret',
-          state: false
-        },
-        function () {});
-      }, Error);
     }
   },
-  
+
   'strategy when loading user profile': {
     topic: function() {
       var strategy = new LineStrategy({
@@ -37,29 +27,34 @@ vows.describe('LineStrategy').addBatch({
         channelSecret: 'secret'
       },
       function() {});
-      
+
       // mock
       strategy._oauth2.get = function(url, accessToken, callback) {
-        var body = '{"displayName":"Snoop Doggy Dogg","userId":"123456","pictureUrl":""}';
-        
-        callback(null, body, undefined);
+        var body = {
+          displayName: 'Snoop Doggy Dogg',
+          userId: '123456',
+          pictureUrl: 'https://uri/img.jpg',
+          statusMessage: 'status message'
+        };
+
+        callback(null, JSON.stringify(body), undefined);
       }
-      
+
       return strategy;
     },
-    
+
     'when told to load user profile': {
       topic: function(strategy) {
         var self = this;
         function done(err, profile) {
           self.callback(err, profile);
         }
-        
+
         process.nextTick(function () {
           strategy.userProfile('access-token', done);
         });
       },
-      
+
       'should not error' : function(err, req) {
         assert.isNull(err);
       },
@@ -67,6 +62,8 @@ vows.describe('LineStrategy').addBatch({
         assert.equal(profile.provider, 'line');
         assert.equal(profile.id, '123456');
         assert.equal(profile.displayName, 'Snoop Doggy Dogg');
+        assert.equal(profile.pictureUrl, 'https://uri/img.jpg');
+        assert.equal(profile.statusMessage, 'status message');
       },
       'should set raw property' : function(err, profile) {
         assert.isString(profile._raw);
@@ -76,7 +73,7 @@ vows.describe('LineStrategy').addBatch({
       },
     },
   },
-  
+
   'strategy when loading user profile and encountering an error': {
     topic: function() {
       var strategy = new LineStrategy({
@@ -84,27 +81,27 @@ vows.describe('LineStrategy').addBatch({
         channelSecret: 'secret'
       },
       function() {});
-      
+
       // mock
       strategy._oauth2.get = function(url, accessToken, callback) {
         callback(new Error('something-went-wrong'));
       }
-      
+
       return strategy;
     },
-    
+
     'when told to load user profile': {
       topic: function(strategy) {
         var self = this;
         function done(err, profile) {
           self.callback(err, profile);
         }
-        
+
         process.nextTick(function () {
           strategy.userProfile('access-token', done);
         });
       },
-      
+
       'should error' : function(err, req) {
         assert.isNotNull(err);
       },
@@ -116,5 +113,5 @@ vows.describe('LineStrategy').addBatch({
       },
     },
   },
-  
+
 }).export(module);
