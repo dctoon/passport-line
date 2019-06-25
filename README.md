@@ -18,6 +18,7 @@ account and OAuth 2.0 tokens.  The strategy requires a `verify` callback, which
 accepts these credentials and calls `done` providing a user, as well as
 `options` specifying a channelID, channelSecret, and callback URL.
 
+```javascript
 passport.use(new LineStrategy({
     channelID: YOUR LINE CHANNEL ID,
     channelSecret: YOUR LINE CHANNEL SECRET,
@@ -29,6 +30,7 @@ passport.use(new LineStrategy({
     });
   }
 ));
+```
 
 
 #### Authenticate Requests
